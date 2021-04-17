@@ -155,11 +155,7 @@ abstract contract ERC3440 is ERC721URIStorage {
     function isSigned(Signature memory message, bytes memory signature, uint tokenId) external view virtual returns (bool) {
         bytes32 messageHash = hash(message);
         address _artist = ECDSA.recover(messageHash, signature);
-        if(_artist == artist && equals(_signatures[tokenId], signature)){
-            return true;
-        } else {
-            return false;
-        }
+        return (_artist == artist && equals(_signatures[tokenId], signature));
     }
 
     // Checks if two `bytes memory` variables are equal. This is done using hashing,
