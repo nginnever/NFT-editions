@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -7,6 +9,39 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  * @dev ERC721 token with editions extension.
  */
 abstract contract ERC3440 is ERC721URIStorage {
+
+    // eip-712
+    struct EIP712Domain {
+        string  name;
+        string  version;
+        uint256 chainId;
+        address verifyingContract;
+    }
+
+    // signature data
+    struct Artist {
+        string name;
+        address wallet;
+    }
+
+    struct Signature {
+        Artist from;
+        string contents;
+    }
+
+    bytes32 constant EIP712DOMAIN_TYPEHASH = keccak256(
+        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+    );
+    
+    bytes32 constant ARTIST_TYPEHASH = keccak256(
+        "Artist(string name,address wallet)"
+    );
+
+    bytes32 constant SIGNATURE_TYPEHASH = keccak256(
+        "Signature(Artist from,string contents)Artist(string name,address wallet)"
+    );
+
+    bytes32 public DOMAIN_SEPARATOR;
     
     // Optional mapping for signatures
     mapping (uint256 => bytes) private _signatures;
@@ -78,14 +113,28 @@ abstract contract ERC3440 is ERC721URIStorage {
      *
      * Emits a {Signed} event.
      */
-    function _signEdition(uint256 tokenId, bytes32 message, bytes memory signature) internal virtual {
+    function _signEdition(uint256 tokenId, Signature memory message, bytes memory signature) internal virtual {
         require(msg.sender == artist, "ERC721Extensions: only the artist may sign their work");
         require(_signatures[tokenId].length == 0, "ERC721Extensions: this token is already signed");
-        address recovered = ECDSA.recover(message, signature);
+        bytes32 digest = keccak256(abi.encodePacked(
+            "\x19\x01",
+            DOMAIN_SEPARATOR,
+            keccak256(abi.encode(
+                SIGNATURE_TYPEHASH,
+                keccak256(abi.encode(
+                    ARTIST_TYPEHASH,
+                    keccak256(bytes(message.from.name)),
+                    message.from.wallet
+                )),
+                keccak256(bytes(message.contents))
+            ))
+        ));
+        address recovered = ECDSA.recover(digest, signature);
         require(recovered == artist, "ERC721Extensions: artist signature mismatch");
         _signatures[tokenId] = signature;
         emit Signed(artist, tokenId);
     }
+
     
     /**
      * @dev displays a signature from the artist.

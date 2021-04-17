@@ -13,7 +13,8 @@
     "test": "npx hardhat test",
     "prepublishOnly": "yarn compile",
     "deploy": "ts-node scripts/deploy.ts",
-    "fungify": "ts-node scripts/fungify.ts"
+    "sign": "ts-node test/test.ts",
+    "sign-test": "node test/test_712.js"
   },
   "repository": {
     "type": "git",
