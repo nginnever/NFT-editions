@@ -29,10 +29,11 @@ abstract contract ERC3440 is ERC721URIStorage {
         string contents;
     }
 
+    // type hashes
     bytes32 constant EIP712DOMAIN_TYPEHASH = keccak256(
         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
     );
-    
+
     bytes32 constant ARTIST_TYPEHASH = keccak256(
         "Artist(string name,address wallet)"
     );
@@ -104,19 +105,8 @@ abstract contract ERC3440 is ERC721URIStorage {
         }
     }
 
-    /**
-     * @dev Signs a `tokenId` representing a print.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     *
-     * Emits a {Signed} event.
-     */
-    function _signEdition(uint256 tokenId, Signature memory message, bytes memory signature) internal virtual {
-        require(msg.sender == artist, "ERC721Extensions: only the artist may sign their work");
-        require(_signatures[tokenId].length == 0, "ERC721Extensions: this token is already signed");
-        bytes32 digest = keccak256(abi.encodePacked(
+    function hash(Signature memory message) internal view returns (bytes32) {
+        return keccak256(abi.encodePacked(
             "\x19\x01",
             DOMAIN_SEPARATOR,
             keccak256(abi.encode(
@@ -129,6 +119,21 @@ abstract contract ERC3440 is ERC721URIStorage {
                 keccak256(bytes(message.contents))
             ))
         ));
+    }
+
+    /**
+     * @dev Signs a `tokenId` representing a print.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     *
+     * Emits a {Signed} event.
+     */
+    function _signEdition(uint256 tokenId, Signature memory message, bytes memory signature) internal virtual {
+        require(msg.sender == artist, "ERC721Extensions: only the artist may sign their work");
+        require(_signatures[tokenId].length == 0, "ERC721Extensions: this token is already signed");
+        bytes32 digest = hash(message);
         address recovered = ECDSA.recover(digest, signature);
         require(recovered == artist, "ERC721Extensions: artist signature mismatch");
         _signatures[tokenId] = signature;
@@ -147,7 +152,8 @@ abstract contract ERC3440 is ERC721URIStorage {
     /**
      * @dev returns `true` if the message is signed by the artist.
      */
-    function isSigned(bytes32 messageHash, bytes memory signature, uint tokenId) external view virtual returns (bool) {
+    function isSigned(Signature memory message, bytes memory signature, uint tokenId) external view virtual returns (bool) {
+        bytes32 messageHash = hash(message);
         address _artist = ECDSA.recover(messageHash, signature);
         if(_artist == artist && equals(_signatures[tokenId], signature)){
             return true;

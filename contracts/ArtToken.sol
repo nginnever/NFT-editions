@@ -26,7 +26,7 @@ contract ArtToken is ERC3440 {
 
         DOMAIN_SEPARATOR = keccak256(abi.encode(
             EIP712DOMAIN_TYPEHASH,
-            keccak256(bytes("Artist Editions")),
+            keccak256(bytes("Artist's Editions")),
             keccak256(bytes("1")),
             1,
             address(this)
