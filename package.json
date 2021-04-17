@@ -1,0 +1,33 @@
+{
+  "name": "nft-editions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nginnever/NFT-editions.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nginnever/NFT-editions/issues"
+  },
+  "homepage": "https://github.com/nginnever/NFT-editions#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.3",
+    "ethereum-waffle": "^3.3.0",
+    "ethers": "^5.0.32",
+    "hardhat": "^2.1.1",
+    "ts-node": "9.0.0",
+    "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.1",
+    "@uniswap/lib": "2.1.0"
+  }
+}
