@@ -18,28 +18,19 @@ abstract contract ERC3440 is ERC721URIStorage {
         address verifyingContract;
     }
 
-    // signature data
-    struct Artist {
-        string name;
-        address wallet;
-    }
-
     struct Signature {
-        Artist from;
+        string artist;
+        address wallet;
         string contents;
     }
 
     // type hashes
-    bytes32 constant EIP712DOMAIN_TYPEHASH = keccak256(
+    bytes32 public constant EIP712DOMAIN_TYPEHASH = keccak256(
         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
     );
 
-    bytes32 constant ARTIST_TYPEHASH = keccak256(
-        "Artist(string name,address wallet)"
-    );
-
     bytes32 constant SIGNATURE_TYPEHASH = keccak256(
-        "Signature(Artist from,string contents)Artist(string name,address wallet)"
+        "Signature(string artist,address wallet, string contents)"
     );
 
     bytes32 public DOMAIN_SEPARATOR;
@@ -111,12 +102,9 @@ abstract contract ERC3440 is ERC721URIStorage {
             DOMAIN_SEPARATOR,
             keccak256(abi.encode(
                 SIGNATURE_TYPEHASH,
-                keccak256(abi.encode(
-                    ARTIST_TYPEHASH,
-                    keccak256(bytes(message.from.name)),
-                    message.from.wallet
-                )),
-                keccak256(bytes(message.contents))
+                message.artist,
+                message.wallet,
+                message.contents
             ))
         ));
     }
@@ -158,11 +146,12 @@ abstract contract ERC3440 is ERC721URIStorage {
         return (_artist == artist && equals(_signatures[tokenId], signature));
     }
 
-    // Checks if two `bytes memory` variables are equal. This is done using hashing,
-    // which is much more gas efficient then comparing each byte individually.
-    // Equality means that:
-    //  - 'self.length == other.length'
-    //  - For 'n' in '[0, self.length)', 'self[n] == other[n]'
+    /**
+    * @dev Utility function that checks if two `bytes memory` variables are equal. This is done using hashing,
+    * which is much more gas efficient then comparing each byte individually.
+    * Equality means that:
+    *  - 'self.length == other.length'
+    */  - For 'n' in '[0, self.length)', 'self[n] == other[n]'
     function equals(bytes memory self, bytes memory other) internal pure returns (bool equal) {
         if (self.length != other.length) {
             return false;
